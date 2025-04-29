@@ -29,6 +29,10 @@ for file_name in file_progress.keys():
 pickle.dump(file_progress,open('./file_progress.pkl','wb'))
 
 word_meaning_map = pickle.load(open('./word_meaning_map.pkl','rb'))
+try:
+    word_example_map = pickle.load(open('./word_example_map.pkl','rb'))
+except:
+    word_example_map = word_meaning_map
 
 def highlight_target_word(current_word,current_text):
     for i in range(len(current_text)):
@@ -49,9 +53,13 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):
             current_word = gr.Textbox(label="当前词")
         with gr.Column(scale=5):
-            current_meaning = gr.Textbox(label="当前词义")
-    with gr.Row():
-        current_text = gr.Textbox(label="当前文本")
+            current_meaning = gr.Textbox(label="模型判断词义")
+    with gr.Row(equal_height=True):
+        with gr.Column(scale=3):
+            current_text = gr.Textbox(label="当前文本")
+        with gr.Column(scale=2):
+            examples = gr.DataFrame(visible=False)
+        
     with gr.Row(equal_height=True):
         with gr.Column(scale=1):
             tf_state = gr.Radio(label="词义标注是否正确",choices=["是","否"],value="是")
@@ -72,11 +80,12 @@ with gr.Blocks() as demo:
                                  current_text,
                                  tf_state,
                                  choose_meaning,
+                                 examples,
                                  choose_file,
                                  index,
                                  full_length])
     def load_file(choose_file,dataframe,current_word,index):
-        global word_meaning_map,file_list, annotated_list, file_progress
+        global word_meaning_map, word_example_map, file_list, annotated_list, file_progress
         if(dataframe is None):
             pass
         else:
@@ -114,6 +123,7 @@ with gr.Blocks() as demo:
                 highlight_target_word(dataframe['word'][0],dataframe['sentence'][file_progress[word][0]]),
                 gr.update(value = "是" if(dataframe['true_meaning'][file_progress[word][0]] == dataframe['meaning'][file_progress[word][0]]) else "否"),
                 gr.update(choices = word_meaning_map[dataframe['word'][0]],value = dataframe['true_meaning'][file_progress[word][0]]),
+                gr.update(value = pd.DataFrame({"释义与例句":word_example_map[dataframe['word'][0]]}), visible=True),
                 gr.update(choices = file_list),
                 file_progress[word][0],
                 file_progress[word][1])

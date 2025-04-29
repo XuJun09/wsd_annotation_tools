@@ -1,4 +1,5 @@
 /annotated_data/**
 /raw_data/**
 word_meaning_map.pkl
+word_example_map.pkl
 file_progress.pkl
