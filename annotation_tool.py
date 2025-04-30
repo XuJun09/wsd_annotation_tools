@@ -3,6 +3,12 @@ import os
 import pandas as pd
 import pickle
 
+# 检测工作目录状态
+if(not os.path.exists('./raw_data/')):
+    os.mkdir('./raw_data')
+if(not os.path.exists('./annotated_data/')):
+    os.mkdir('./annotated_data')
+
 # 初始化文件列表，对已经标注的文件打勾
 file_list = os.listdir("./raw_data/")
 file_list = [file.split('.')[0] for file in file_list if file.endswith(".csv")]
@@ -12,19 +18,24 @@ try:
 except:
     file_progress = {file_name:[0,0] for file_name in file_list}
 # 初始化文件进度显示
+deleted_files = []
 for file_name in file_progress.keys():
     if(not file_name in file_list): # 文件被删除了
-        del file_progress[file_name]
-    if(file_progress[file_name][1] == 0): # 没有被读取过文件长度
+        deleted_files.append(file_name)
+    elif(file_progress[file_name][1] == 0): # 没有被读取过文件长度
         f = open('./raw_data/' + file_name + '.csv', 'r', encoding='utf-8')
         file_progress[file_name][1] = len(f.readlines()) - 2 # 去掉表头和最后的空行
         f.close()
-    if(file_progress[file_name][0] == file_progress[file_name][1]):
+    elif(file_progress[file_name][0] == file_progress[file_name][1]):
         file_list[file_list.index(file_name)] = '★ ' + file_name
     elif(file_progress[file_name][0] == 0):
         continue
     else:
         file_list[file_list.index(file_name)] = '☆ ' + file_name
+for del_file in deleted_files:
+    del file_progress[del_file]
+del deleted_files
+
 # 将更新总长度之后的文件进度序列化
 pickle.dump(file_progress,open('./file_progress.pkl','wb'))
 
