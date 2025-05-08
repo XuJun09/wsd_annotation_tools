@@ -27,7 +27,10 @@ for file_name in file_progress.keys():
         file_progress[file_name][1] = len(f.readlines()) - 2 # 去掉表头和最后的空行
         f.close()
     elif(file_progress[file_name][0] == file_progress[file_name][1]):
-        file_list[file_list.index(file_name)] = '★ ' + file_name
+        if(os.path.exists('./annotated_data/' + file_name + '.csv')): # 排除文件本身长度为1的情况
+            file_list[file_list.index(file_name)] = '★ ' + file_name
+        else:
+            continue
     elif(file_progress[file_name][0] == 0):
         continue
     else:
@@ -140,10 +143,10 @@ with gr.Blocks() as demo:
                 file_progress[word][1])
     
     
-    @tf_state.change(inputs=[tf_state],outputs=[choose_meaning])
-    def tf_state_change(tf_state):
+    @tf_state.change(inputs=[tf_state,current_meaning],outputs=[choose_meaning])
+    def tf_state_change(tf_state,current_meaning):
         if(tf_state == "是"):
-            return gr.update(visible=False)
+            return gr.update(visible=False,value=current_meaning)
         else:
             return gr.update(visible=True)
     
